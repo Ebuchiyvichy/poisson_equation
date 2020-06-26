@@ -17,7 +17,7 @@ struct Data
 	double	L1 = 1;//test1,test2,test3
 	double	L2 = 1;
 
-	double	T = 0.3;
+	double	T = 0.1;
 
 	bool	condition[4] = { 1, 1, 0, 0 };//левое/правое/нижнее/верхнее условия; 0 -- первый род, 1 -- второй
 
