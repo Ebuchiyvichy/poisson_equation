@@ -14,12 +14,15 @@ extern double	PI;
 
 struct Data
 {
-	double	L1 = 1;//test1,test2,test3
+	double	L1 = 1;//test1,test2,test3,var6
 	double	L2 = 1;
+	
+//	double	L1 = PI / 3;//var2
+//	double	L2 = PI / 2;
 
-	double	T = 0.1;
+	double	T = 1.0;
 
-	bool	condition[4] = { 1, 1, 0, 0 };//левое/правое/нижнее/верхнее условия; 0 -- первый род, 1 -- второй
+	bool	condition[4] = { 0, 0, 1, 1 };//левое/правое/нижнее/верхнее условия; 0 -- первый род, 1 -- второй
 
 	std::function<double(double, double, Data)>	initial;
 	std::function<double(double, Data)>	left_boarder;
@@ -45,7 +48,7 @@ double	phi(double t, Data my_data);
 double	psi(double t, Data my_data);
 double	r(double x, double y, Data my_data);
 
-void	poisson_equation(double h1, double h2, double tau, Data my_data, std::string order, double start);
+double	poisson_equation(double h1, double h2, double tau, Data my_data, std::string order, double start);
 
 
 

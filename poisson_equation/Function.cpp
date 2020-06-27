@@ -3,42 +3,61 @@
 
 double	init(double x, double y, Data my_data)
 {
-	return 1;
+//	return 1;
 	return 1 + x;//test1
 }
 double	f(double x, Data my_data)
 {
 //	return 1;//test1
-//	return -1;//test2
-	return x * x;//test3
-	return 2 - x;
+	return -1;//test2
+//	return x * x;//test3
+//	return -sin(x) * sin(x);//var2
+	return -sqrt(1 + x);//var6
+	return 0.0;//var10
 }
 double	g(double x, Data my_data)
 {
 //	return 1;//test1
-//	return 1;//test2
-	return 1 + x * x;//test3
-	return 2 - x;
+	return 1;//test2
+//	return 1 + x * x;//test3
+//	return sin(x) * sin(x);//var2
+	return sqrt(2 + x);//var6
+	return x * (x - 1);//var10
 }
 double	phi(double x, Data my_data)
 {
 //	return 1;//test1
-//	return 1 + x;//test2
-	return 0.0;//test3
-	return 2.0;
+	return 1 + x;//test2
+//	return 0.0;//test3
+//	return 0.;//var2
+	return 2.0 / 3 * pow(x + 1, 1.5);//var6
+	return x * x;//var10
 }
 double	psi(double x, Data my_data)
 {
 //	return 1;//test1
-//	return 1 + x;//test2
-	return 2.;//test3
-	return 0.0;
-	return -1.0;
+	return 1 + x;//test2
+//	return 2.;//test3
+//	return 0.75 * x;//var2
+	return 2.0 / 3 * pow(x + 2, 1.5);//var6
+	return 4 * x - x * x;//var10
 }
 double	r(double x, double y, Data my_data)
 {
-//	return 0.0;//test1,test2
-	return -4.0;//test3
+	return 0.0;//test1,test2
+//	return -4.0;//test3
+//	return -y * cos(2 * x);//var2
+	return -1 / sqrt(x + y + 1);//var6
+	return -(2 * y - x);//var10
+}
+
+double	test(double x, double y)
+{
+//	return 1.0;//test1
+	return 1 + y;//test2
+//	return y * sin(x) * sin(x);//var2
+	return 2. / 3 * pow(x + y + 1, 1.5);//var6
+	return x * x*y - y * y*x;//var10
 }
 
 // права€ прогонка (половинна€ прогонка)
@@ -97,11 +116,34 @@ void progon_1(int n1, int n2, int k, double **y, double *a, double *b, double *c
 //	std::cout << '\n';
 }
 
+double	max_el(double **y1, double **y2, int n1, int n2)
+{
+	double max = -100;
+
+	for (int i = 0; i <= n1; i++)
+		for (int j = 0; j <= n2; j++)
+			if (fabs(y1[i][j] - y2[i][j]) > max)
+				max = fabs(y1[i][j] - y2[i][j]);
+	return max;
+}
+
+double	max_err(double **y1, int n1, int n2, double h1, double h2)
+{
+	double max = -100;
+
+	for (int i = 0; i <= n1; i++)
+		for (int j = 0; j <= n2; j++)
+			if (fabs(y1[i][j] - test(i * h1, j * h2)) > max)
+				max = fabs(y1[i][j] - test(i * h1, j * h2));
+	return max;
+}
+
 //дл€ √” только первого рода
-void	poisson_equation(double h1, double h2, double tau, Data my_data, std::string order, double start)
+double	poisson_equation(double h1, double h2, double tau, Data my_data, std::string order, double start)
 {
 	int					n1 = my_data.L1 / h1;
 	int					n2 = my_data.L2 / h2;
+	double				max;
 	//коэффициенты прогонки
 	double				A1[3] = { 0.0, 
 									1.0 / (h1 * h1), 
@@ -128,7 +170,7 @@ void	poisson_equation(double h1, double h2, double tau, Data my_data, std::strin
 	double				*F2 = new double[n2 + 1];
 	//файловые переменные
 	std::ofstream		fout;
-	std::ofstream		fout_enrgy;
+	std::ofstream		fout_err;
 
 	//массивы по временным шагам
 	double				**y1 = new double *[n1 + 1];	//нулевой слой
@@ -147,13 +189,14 @@ void	poisson_equation(double h1, double h2, double tau, Data my_data, std::strin
 
 	str += order + ".txt";
 	fout.open(str);
-	fout_enrgy.open("Energy.txt");
+	fout_err.open("Err.txt");
 	// инициализаци€ начальными данными
 	for (int i = 0; i <= n1; i++)			//инициализаци€ нулевого сло€
 		for (int j = 0; j <= n2; j++)
 			y1[i][j] = my_data.initial(i * h1, j * h2 , my_data);
-
+	int it = 0;
 	for (double t = tau; t <= my_data.T; t += tau)
+//	do
 	{
 
 		//прогонка вдоль (половинчатый слой)	/*грануслови€ лева€ и права€ граница*/
@@ -273,17 +316,26 @@ void	poisson_equation(double h1, double h2, double tau, Data my_data, std::strin
 			progon_1(n1, n2, i, y3, A2, B2, C2, F2, my_data);
 		}
 		
+//		max = max_el(y1, y3, n1, n2);
+		max = max_err(y3, n1, n2, h1, h2);
+
 		for (int i = 0; i <= n1; i++)
 			for (int j = 0; j <= n2; j++)
 				y1[i][j] = y3[i][j];
-		std::cout << t << " is over\n";
-	}
+	//	fout_err << max << '\n';
+		it++;
+	//	std::cout << t << " is over max is " << max << '\n';
+	}//while (max > 0.1);
+
+		for (int i = 0; i <= n1; i++)
+			for (int j = 0; j <= n2; j++)
+				fout_err << i * h1 << '\t' << j * h2 << '\t' << fabs(y3[i][j] - test(i * h1, j * h2)) << '\n';
 
 		for (int i = 0; i <= n1; i++)
 			for (int j = 0; j <= n2; j++)
 				fout << i * h1 << '\t' << j * h2 << '\t' << y3[i][j] << '\n';
-
 	fout.close();
-	fout_enrgy.close();
+	fout_err.close();
 	std::cout << "Your file is ready" << std::endl;
+	return max;
 }
